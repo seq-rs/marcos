@@ -1,0 +1,18 @@
+[package]
+name = "marcos"
+license.workspace = true
+repository.workspace = true
+categories.workspace = true
+description.workspace = true
+version.workspace = true
+keywords.workspace = true
+rust-version.workspace = true
+edition.workspace = true
+
+[dependencies]
+marcos_core = { path = "../core" }
+marcos_derive = { path = "../derive" }
+
+[dev-dependencies]
+trybuild = "1"
+syn = { version = "2", features = ["full"] }

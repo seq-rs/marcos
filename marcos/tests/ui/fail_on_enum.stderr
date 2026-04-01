@@ -1,0 +1,5 @@
+error: ParseAttributes only supports structs
+ --> tests/ui/fail_on_enum.rs:5:6
+  |
+5 | enum NotAStruct {
+  |      ^^^^^^^^^^

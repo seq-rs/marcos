@@ -1,0 +1,5 @@
+error: cannot specify both #[attr_path] and #[intersection]
+ --> tests/ui/fail_both_modes.rs:5:1
+  |
+5 | #[intersection]
+  | ^^^^^^^^^^^^^^^
