@@ -16,12 +16,15 @@ pub use errctx::ErrCtx;
 /// |---|---|---|
 /// | `Option<bool>` / `bool` | `#[name(flag)]` | Presence = `true`, absence = `None`/`false` |
 /// | `Option<String>` / `String` | `#[name(key = "value")]` | Parses string literal |
-/// | `Option<T>` / `T` | `#[name(key = value)]` | Delegates to `syn::parse::Parse` |
+/// | Integer types (`u32`, `i64`, etc.) | `#[name(key = 42)]` | Parses integer literal |
+/// | `Option<Ident>` / `Ident` | `#[name(key = foo)]` | Delegates to `syn::parse::Parse` |
+/// | `Option<T>` / `T` | `#[name(key = value)]` | Fallback: `syn::parse::Parse` |
 ///
 /// # Required vs optional
 ///
 /// - `Option<T>` fields are optional — `None` if the attribute key is absent.
 /// - Bare `T` fields are required — a `syn::Error` is returned if missing.
+/// - **Exception:** bare `bool` defaults to `false` when the flag is absent.
 ///
 /// # Example
 ///
