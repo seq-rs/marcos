@@ -16,7 +16,6 @@ struct ExternalAttrs {
 #[intersection]
 struct AllAttrs {
     marcos: MarcosAttrs,
-    #[attr_path(external)]
     ext: ExternalAttrs,
 }
 
