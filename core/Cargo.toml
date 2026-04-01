@@ -12,3 +12,4 @@ edition.workspace = true
 [dependencies]
 syn = { version = "2", features = ["full"] }
 proc-macro2 = "1"
+quote = "1"

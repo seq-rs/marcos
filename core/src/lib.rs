@@ -1,3 +1,7 @@
+mod errctx;
+
+pub use errctx::ErrCtx;
+
 /// Trait for converting `&[syn::Attribute]` into typed structs.
 ///
 /// This is the core trait behind `#[derive(ParseAttributes)]`. It provides a single
@@ -10,9 +14,9 @@
 ///
 /// | Field type | Attribute syntax | Behavior |
 /// |---|---|---|
-/// | `Option<bool>` / `bool` | `#[path(flag)]` | Presence = `true`, absence = `None`/`false` |
-/// | `Option<String>` / `String` | `#[path(key = "value")]` | Parses string literal |
-/// | `Option<T>` / `T` | `#[path(key = value)]` | Delegates to `syn::parse::Parse` |
+/// | `Option<bool>` / `bool` | `#[name(flag)]` | Presence = `true`, absence = `None`/`false` |
+/// | `Option<String>` / `String` | `#[name(key = "value")]` | Parses string literal |
+/// | `Option<T>` / `T` | `#[name(key = value)]` | Delegates to `syn::parse::Parse` |
 ///
 /// # Required vs optional
 ///
@@ -35,15 +39,16 @@
 ///
 /// # Intersection mode
 ///
-/// For structs that aggregate attributes from multiple paths:
+/// For structs that aggregate multiple `ParseAttributes` types. Each field's
+/// type handles its own attribute path — the full `&[Attribute]` slice is
+/// passed to each sub-struct's `parse_attributes`.
 ///
 /// ```ignore
 /// #[derive(ParseAttributes)]
 /// #[intersection]
 /// struct AllAttrs {
-///     widget: WidgetAttrs,          // delegates to WidgetAttrs::parse_attributes
-///     #[attr_path(external)]
-///     ext: ExternalAttrs,           // field-level path override
+///     widget: WidgetAttrs,
+///     ext: ExternalAttrs,
 /// }
 /// ```
 ///
