@@ -47,12 +47,15 @@ The field type determines how values are extracted:
 |---|---|---|
 | `Option<bool>` / `bool` | `#[widget(skip)]` | Presence flag |
 | `Option<String>` / `String` | `#[widget(rename = "Foo")]` | String literal |
-| `Option<T>` / `T` | `#[widget(key = value)]` | `syn::parse::Parse` |
+| Integer types (`u32`, `i64`, etc.) | `#[widget(count = 42)]` | Integer literal |
+| `Ident` | `#[widget(via = from_str)]` | `syn::parse::Parse` |
+| `Option<T>` / `T` | `#[widget(key = value)]` | Fallback: `syn::parse::Parse` |
 
 ### Required vs optional
 
 `Option<T>` fields are optional — `None` when absent. Non-`Option` fields are
-required and produce a compile error if missing:
+required and produce a compile error if missing. Bare `bool` is an exception —
+it defaults to `false` when the flag is absent.
 
 ```rust
 #[derive(ParseAttributes)]
@@ -60,6 +63,7 @@ required and produce a compile error if missing:
 struct Attrs {
     name: String,            // required
     label: Option<String>,   // optional
+    skip: bool,              // defaults to false
 }
 ```
 
