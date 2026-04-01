@@ -1,3 +1,5 @@
+pub use marcos_core::ErrCtx;
+
 /// Re-export the `ParseAttributes` trait from `marcos_core`.
 ///
 /// Implement this trait via `#[derive(ParseAttributes)]` to convert
@@ -16,20 +18,16 @@ pub use marcos_core::ParseAttributes;
 ///
 /// - **`#[intersection]`** — aggregate multiple attribute paths.
 ///   Each field must be a type that implements `ParseAttributes`.
-///   The field name is used as the attribute path by default.
+///   The full attribute slice is passed to each field's `parse_attributes`,
+///   so each sub-struct filters by its own `#[attr_path]`.
 ///
 /// # Field-level attributes (in `#[attr_path]` mode)
 ///
 /// - **`#[meta(key)]`** — override the meta key (default: field name).
-/// - **`#[meta(outer(inner))]`** — parse nested attributes like `#[path(outer(inner = "value"))]`.
+/// - **`#[meta(outer(inner))]`** — parse nested attributes like `#[name(outer(inner = "value"))]`.
 ///   Supports up to 3 levels of nesting.
 /// - **`#[parse(with = func)]`** — custom parser function.
 ///   Signature: `fn(&syn::meta::ParseNestedMeta) -> syn::Result<T>`.
-///
-/// # Field-level attributes (in `#[intersection]` mode)
-///
-/// - **`#[attr_path(name)]`** — override which attribute path this field delegates to
-///   (default: field name).
 ///
 /// # Examples
 ///
@@ -55,7 +53,6 @@ pub use marcos_core::ParseAttributes;
 /// #[intersection]
 /// struct AllAttrs {
 ///     widget: WidgetAttrs,
-///     #[attr_path(external)]
 ///     ext: ExternalAttrs,
 /// }
 /// ```
