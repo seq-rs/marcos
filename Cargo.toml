@@ -2,6 +2,8 @@
 resolver = "3"
 members = [
     "core",
+    "derive",
+    "marcos",
 ]
 
 [workspace.package]
