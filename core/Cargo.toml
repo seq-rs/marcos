@@ -1,0 +1,14 @@
+[package]
+name = "marcos_core"
+license.workspace = true
+repository.workspace = true
+categories.workspace = true
+description.workspace = true
+version.workspace = true
+keywords.workspace = true
+rust-version.workspace = true
+edition.workspace = true
+
+[dependencies]
+syn = { version = "2", features = ["full"] }
+proc-macro2 = "1"
