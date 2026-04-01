@@ -31,7 +31,7 @@ fn gen_path_impl(struct_ident: Ident, path: Ident, fields: Vec<MetaFieldDef>) ->
         } else {
             quote! {
                 #ident: #ident.ok_or_else(|| {
-                    ::marcos_core::missing_required(#path_str_for_err, #ident_str)
+                    ::marcos::marcos_core::missing_required(#path_str_for_err, #ident_str)
                 })?
             }
         }
@@ -40,8 +40,8 @@ fn gen_path_impl(struct_ident: Ident, path: Ident, fields: Vec<MetaFieldDef>) ->
     let path_str = path.to_string();
 
     quote! {
-        impl ::marcos_core::ParseAttributes for #struct_ident {
-            fn parse_attributes(attrs: &[::syn::Attribute]) -> ::syn::Result<Self> {
+        impl ::marcos::marcos_core::ParseAttributes for #struct_ident {
+            fn parse_attributes_ext(attrs: &[::syn::Attribute], allow_unknown: bool) -> ::syn::Result<Self> {
                 #(#field_decls)*
 
                 for attr in attrs {
@@ -51,6 +51,9 @@ fn gen_path_impl(struct_ident: Ident, path: Ident, fields: Vec<MetaFieldDef>) ->
                         }
                         attr.parse_nested_meta(|meta| {
                             #(#match_arms)*
+                            if allow_unknown {
+                                return Ok(());
+                            }
                             Err(meta.error("unknown attribute"))
                         })?;
                     }
@@ -221,20 +224,20 @@ fn gen_nested_value_parse(field_ident: &Ident, keys: &[Ident], inner_ty: &syn::T
 }
 
 fn gen_intersection_impl(struct_ident: Ident, fields: Vec<IntersectionFieldDef>) -> TokenStream {
-    // each sub-type's parse_attributes filters by its own #[path], so just pass all attrs through
     let field_parses = fields.iter().map(|f| {
         let ident = &f.ident;
         let ty = &f.ty;
+        // allow_unknown = true so sub-structs sharing a path ignore each other's keys
         quote! {
-            let #ident = <#ty as ::marcos_core::ParseAttributes>::parse_attributes(attrs)?;
+            let #ident = <#ty as ::marcos::marcos_core::ParseAttributes>::parse_attributes_ext(attrs, true)?;
         }
     });
 
     let field_idents = fields.iter().map(|f| &f.ident);
 
     quote! {
-        impl ::marcos_core::ParseAttributes for #struct_ident {
-            fn parse_attributes(attrs: &[::syn::Attribute]) -> ::syn::Result<Self> {
+        impl ::marcos::marcos_core::ParseAttributes for #struct_ident {
+            fn parse_attributes_ext(attrs: &[::syn::Attribute], _allow_unknown: bool) -> ::syn::Result<Self> {
                 #(#field_parses)*
 
                 Ok(Self {

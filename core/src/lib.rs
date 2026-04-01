@@ -79,7 +79,17 @@ pub trait ParseAttributes: Sized {
     ///
     /// Returns `Err` if a required field is missing, a value fails to parse,
     /// or a duplicate/unknown attribute key is encountered.
-    fn parse_attributes(attrs: &[syn::Attribute]) -> syn::Result<Self>;
+    fn parse_attributes(attrs: &[syn::Attribute]) -> syn::Result<Self> {
+        Self::parse_attributes_ext(attrs, false)
+    }
+
+    /// Parse attributes with control over unknown key handling.
+    ///
+    /// When `allow_unknown` is `true`, unrecognized attribute keys are silently
+    /// ignored instead of producing an error. This is used automatically by
+    /// `#[intersection]` mode so that multiple sub-structs sharing the same
+    /// attribute path can each parse only the keys they care about.
+    fn parse_attributes_ext(attrs: &[syn::Attribute], allow_unknown: bool) -> syn::Result<Self>;
 }
 
 /// Helper for generated code — creates a "missing required field" error.
