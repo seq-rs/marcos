@@ -25,6 +25,9 @@ fn gen_path_impl(struct_ident: Ident, path: Ident, fields: Vec<MetaFieldDef>) ->
         let path_str_for_err = path.to_string();
         if f.optional {
             quote! { #ident }
+        } else if is_bool_type(&f.inner_ty) {
+            // bare bool defaults to false when absent
+            quote! { #ident: #ident.unwrap_or(false) }
         } else {
             quote! {
                 #ident: #ident.ok_or_else(|| {
@@ -121,7 +124,19 @@ fn gen_value_parse(field_ident: &Ident, key_str: &str, inner_ty: &syn::Type) -> 
                 return Ok(());
             }
         }
+    } else if is_int_type(inner_ty) {
+        let int_ty = inner_ty;
+        quote! {
+            if meta.path.is_ident(#key_str) {
+                #dup_guard
+                let value = meta.value()?;
+                let lit: ::syn::LitInt = value.parse()?;
+                #field_ident = Some(lit.base10_parse::<#int_ty>()?);
+                return Ok(());
+            }
+        }
     } else {
+        // fallback: delegates to syn::parse::Parse (works for Ident, Path, etc.)
         quote! {
             if meta.path.is_ident(#key_str) {
                 #dup_guard
@@ -134,26 +149,37 @@ fn gen_value_parse(field_ident: &Ident, key_str: &str, inner_ty: &syn::Type) -> 
     }
 }
 
+/// Generate the assignment expression for a leaf value (used in both flat and nested contexts).
+fn gen_leaf_value_assign(field_ident: &Ident, inner_ty: &syn::Type) -> TokenStream {
+    if is_bool_type(inner_ty) {
+        quote! { #field_ident = Some(true); }
+    } else if is_string_type(inner_ty) {
+        quote! {
+            let value = meta.value()?;
+            let lit: ::syn::LitStr = value.parse()?;
+            #field_ident = Some(lit.value());
+        }
+    } else if is_int_type(inner_ty) {
+        quote! {
+            let value = meta.value()?;
+            let lit: ::syn::LitInt = value.parse()?;
+            #field_ident = Some(lit.base10_parse::<#inner_ty>()?);
+        }
+    } else {
+        quote! {
+            let value = meta.value()?;
+            let parsed: #inner_ty = value.parse()?;
+            #field_ident = Some(parsed);
+        }
+    }
+}
+
 fn gen_nested_value_parse(field_ident: &Ident, keys: &[Ident], inner_ty: &syn::Type) -> TokenStream {
     let first_key_str = keys[0].to_string();
     let second_key_str = keys[1].to_string();
 
     if keys.len() == 2 {
-        let value_parse = if is_bool_type(inner_ty) {
-            quote! { #field_ident = Some(true); }
-        } else if is_string_type(inner_ty) {
-            quote! {
-                let value = meta.value()?;
-                let lit: ::syn::LitStr = value.parse()?;
-                #field_ident = Some(lit.value());
-            }
-        } else {
-            quote! {
-                let value = meta.value()?;
-                let parsed: #inner_ty = value.parse()?;
-                #field_ident = Some(parsed);
-            }
-        };
+        let value_parse = gen_leaf_value_assign(field_ident, inner_ty);
 
         quote! {
             if meta.path.is_ident(#first_key_str) {
@@ -169,21 +195,7 @@ fn gen_nested_value_parse(field_ident: &Ident, keys: &[Ident], inner_ty: &syn::T
         }
     } else if keys.len() == 3 {
         let third_key_str = keys[2].to_string();
-        let value_parse = if is_bool_type(inner_ty) {
-            quote! { #field_ident = Some(true); }
-        } else if is_string_type(inner_ty) {
-            quote! {
-                let value = meta.value()?;
-                let lit: ::syn::LitStr = value.parse()?;
-                #field_ident = Some(lit.value());
-            }
-        } else {
-            quote! {
-                let value = meta.value()?;
-                let parsed: #inner_ty = value.parse()?;
-                #field_ident = Some(parsed);
-            }
-        };
+        let value_parse = gen_leaf_value_assign(field_ident, inner_ty);
 
         quote! {
             if meta.path.is_ident(#first_key_str) {
@@ -244,6 +256,19 @@ fn is_bool_type(ty: &syn::Type) -> bool {
 fn is_string_type(ty: &syn::Type) -> bool {
     if let syn::Type::Path(p) = ty {
         p.path.is_ident("String")
+    } else {
+        false
+    }
+}
+
+const INT_TYPES: &[&str] = &[
+    "u8", "u16", "u32", "u64", "u128", "usize",
+    "i8", "i16", "i32", "i64", "i128", "isize",
+];
+
+fn is_int_type(ty: &syn::Type) -> bool {
+    if let syn::Type::Path(p) = ty {
+        INT_TYPES.iter().any(|t| p.path.is_ident(t))
     } else {
         false
     }
