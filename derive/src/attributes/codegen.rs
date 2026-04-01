@@ -14,14 +14,10 @@ pub(crate) fn generate(input: ParsedInput) -> TokenStream {
 fn gen_path_impl(struct_ident: Ident, path: Ident, fields: Vec<MetaFieldDef>) -> TokenStream {
     let field_decls = fields.iter().map(|f| {
         let ident = &f.ident;
-        if f.optional {
-            quote! { let mut #ident = None; }
-        } else {
-            quote! { let mut #ident = None; }
-        }
+        quote! { let mut #ident = None; }
     });
 
-    let match_arms = fields.iter().map(|f| gen_meta_match_arm(f));
+    let match_arms = fields.iter().map(gen_meta_match_arm);
 
     let field_finalizers = fields.iter().map(|f| {
         let ident = &f.ident;

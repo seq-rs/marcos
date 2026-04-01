@@ -12,7 +12,6 @@ pub(crate) enum AttrMode {
 /// Parsed representation of a field in `#[attr_path]` mode.
 pub(crate) struct MetaFieldDef {
     pub ident: Ident,
-    pub ty: Type,
     pub optional: bool,
     /// The inner type (unwrapped from Option if optional).
     pub inner_ty: Type,
@@ -26,8 +25,6 @@ pub(crate) struct MetaFieldDef {
 pub(crate) struct IntersectionFieldDef {
     pub ident: Ident,
     pub ty: Type,
-    /// The attribute path to delegate to. Defaults to field name, overridden by `#[attr_path(x)]`.
-    pub path: Ident,
 }
 
 pub(crate) enum ParsedInput {
@@ -104,7 +101,7 @@ fn parse_meta_field(field: &syn::Field) -> syn::Result<MetaFieldDef> {
     for attr in &field.attrs {
         if attr.path().is_ident("meta") {
             let mut keys = Vec::new();
-            parse_nested_meta_keys(&attr, &mut keys)?;
+            parse_nested_meta_keys(attr, &mut keys)?;
             meta_keys = Some(keys);
         } else if attr.path().is_ident("parse") {
             attr.parse_nested_meta(|meta| {
@@ -123,7 +120,7 @@ fn parse_meta_field(field: &syn::Field) -> syn::Result<MetaFieldDef> {
     // default: field name is the meta key
     let meta_keys = meta_keys.unwrap_or_else(|| vec![ident.clone()]);
 
-    Ok(MetaFieldDef { ident, ty, optional, inner_ty, meta_keys, custom_parser })
+    Ok(MetaFieldDef { ident, optional, inner_ty, meta_keys, custom_parser })
 }
 
 fn parse_nested_meta_keys(attr: &syn::Attribute, keys: &mut Vec<Ident>) -> syn::Result<()> {
@@ -157,16 +154,7 @@ fn parse_nested_meta_keys(attr: &syn::Attribute, keys: &mut Vec<Ident>) -> syn::
 fn parse_intersection_field(field: &syn::Field) -> syn::Result<IntersectionFieldDef> {
     let ident = field.ident.clone().unwrap();
     let ty = field.ty.clone();
-
-    let mut path_override: Option<Ident> = None;
-    for attr in &field.attrs {
-        if attr.path().is_ident("attr_path") {
-            path_override = Some(attr.parse_args()?);
-        }
-    }
-
-    let path = path_override.unwrap_or_else(|| ident.clone());
-    Ok(IntersectionFieldDef { ident, ty, path })
+    Ok(IntersectionFieldDef { ident, ty })
 }
 
 /// If the type is `Option<T>`, returns `(true, T)`. Otherwise `(false, original)`.

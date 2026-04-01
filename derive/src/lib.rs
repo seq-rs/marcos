@@ -1,4 +1,3 @@
-mod errctx;
 mod attributes;
 
 use proc_macro::TokenStream;
