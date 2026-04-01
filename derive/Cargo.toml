@@ -1,0 +1,18 @@
+[package]
+name = "marcos_derive"
+license.workspace = true
+repository.workspace = true
+categories.workspace = true
+description.workspace = true
+version.workspace = true
+keywords.workspace = true
+rust-version.workspace = true
+edition.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "2", features = ["full", "extra-traits"] }
+proc-macro2 = { version = "1", features = ["proc-macro"] }
+quote = "1"
