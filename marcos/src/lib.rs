@@ -1,3 +1,6 @@
+#[doc(hidden)]
+pub use marcos_core;
+
 pub use marcos_core::ErrCtx;
 
 /// Re-export the `ParseAttributes` trait from `marcos_core`.
