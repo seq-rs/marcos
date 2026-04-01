@@ -18,13 +18,14 @@ jobs:
       - run: cargo test --workspace
 
       # publish order matters: core -> derive -> facade
-      - run: cargo publish -p marcos_core
+      # || true skips already-published versions so unchanged crates don't block the pipeline
+      - run: cargo publish -p marcos_core || true
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
       - run: sleep 15 # crates.io index propagation
 
-      - run: cargo publish -p marcos_derive
+      - run: cargo publish -p marcos_derive || true
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 

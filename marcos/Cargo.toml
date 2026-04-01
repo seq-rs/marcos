@@ -10,8 +10,8 @@ rust-version.workspace = true
 edition.workspace = true
 
 [dependencies]
-marcos_core = { path = "../core" }
-marcos_derive = { path = "../derive" }
+marcos_core.workspace = true
+marcos_derive.workspace = true
 
 [dev-dependencies]
 trybuild = "1"

@@ -15,3 +15,7 @@ repository = "https://github.com/seq-rs/marcos"
 license = "MIT"
 keywords = ["attribute", "derive", "macros"]
 categories = ["development-tools::procedural-macro-helpers"]
+
+[workspace.dependencies]
+marcos_core = { path = "core", version = "=0.1.0" }
+marcos_derive = { path = "derive", version = "=0.1.0" }
