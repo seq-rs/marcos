@@ -14,7 +14,12 @@ pub(crate) fn generate(input: ParsedInput) -> TokenStream {
 fn gen_path_impl(struct_ident: Ident, path: Ident, fields: Vec<MetaFieldDef>) -> TokenStream {
     let field_decls = fields.iter().map(|f| {
         let ident = &f.ident;
-        quote! { let mut #ident = None; }
+        let inner_ty = &f.inner_ty;
+        if f.is_vec {
+            quote! { let mut #ident: ::std::vec::Vec<#inner_ty> = ::std::vec::Vec::new(); }
+        } else {
+            quote! { let mut #ident = None; }
+        }
     });
 
     let match_arms = fields.iter().map(gen_meta_match_arm);
@@ -23,10 +28,10 @@ fn gen_path_impl(struct_ident: Ident, path: Ident, fields: Vec<MetaFieldDef>) ->
         let ident = &f.ident;
         let ident_str = ident.to_string();
         let path_str_for_err = path.to_string();
-        if f.optional {
+        if f.is_vec || f.optional {
+            // Vec is always "optional" (empty when no keys seen); Option stays as-is
             quote! { #ident }
         } else if is_bool_type(&f.inner_ty) {
-            // bare bool defaults to false when absent
             quote! { #ident: #ident.unwrap_or(false) }
         } else {
             quote! {
@@ -71,13 +76,11 @@ fn gen_meta_match_arm(field: &MetaFieldDef) -> TokenStream {
     let field_ident = &field.ident;
     let keys = &field.meta_keys;
 
-    // the outermost key is what we match in parse_nested_meta
     let first_key = &keys[0];
     let first_key_str = first_key.to_string();
 
     if let Some(ref parser) = field.custom_parser {
         let dup_guard = gen_duplicate_guard(field_ident, &first_key_str);
-        // #[parse(with = func)] — fn(&ParseNestedMeta) -> syn::Result<T>
         return quote! {
             if meta.path.is_ident(#first_key_str) {
                 #dup_guard
@@ -89,12 +92,31 @@ fn gen_meta_match_arm(field: &MetaFieldDef) -> TokenStream {
 
     let inner_ty = &field.inner_ty;
 
+    if field.is_vec {
+        // #[path(key(item1, item2, ...))] — collects into Vec<inner_ty>
+        return gen_vec_parse(field_ident, &first_key_str, inner_ty);
+    }
+
     if keys.len() == 1 {
-        // simple: #[path(key)] or #[path(key = "value")]
         gen_value_parse(field_ident, &first_key_str, inner_ty)
     } else {
-        // nested: #[path(a(b))] or #[path(a(b = "value"))]
         gen_nested_value_parse(field_ident, keys, inner_ty)
+    }
+}
+
+fn gen_vec_parse(field_ident: &Ident, key_str: &str, inner_ty: &syn::Type) -> TokenStream {
+    // #[key(a, b, c)] — parse a comma-separated list of `inner_ty` via syn::parse::Parse
+    quote! {
+        if meta.path.is_ident(#key_str) {
+            let content;
+            ::syn::parenthesized!(content in meta.input);
+            let items: ::syn::punctuated::Punctuated<#inner_ty, ::syn::Token![,]> =
+                content.parse_terminated(<#inner_ty as ::syn::parse::Parse>::parse, ::syn::Token![,])?;
+            for item in items {
+                #field_ident.push(item);
+            }
+            return Ok(());
+        }
     }
 }
 

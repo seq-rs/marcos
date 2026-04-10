@@ -18,6 +18,7 @@ pub use errctx::ErrCtx;
 /// | `Option<String>` / `String` | `#[name(key = "value")]` | Parses string literal |
 /// | Integer types (`u32`, `i64`, etc.) | `#[name(key = 42)]` | Parses integer literal |
 /// | `Option<Ident>` / `Ident` | `#[name(key = foo)]` | Delegates to `syn::parse::Parse` |
+/// | `Vec<T>` | `#[name(key(a, b, c))]` | Comma-separated list, each parsed as `T` |
 /// | `Option<T>` / `T` | `#[name(key = value)]` | Fallback: `syn::parse::Parse` |
 ///
 /// # Required vs optional

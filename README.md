@@ -49,6 +49,7 @@ The field type determines how values are extracted:
 | `Option<String>` / `String` | `#[widget(rename = "Foo")]` | String literal |
 | Integer types (`u32`, `i64`, etc.) | `#[widget(count = 42)]` | Integer literal |
 | `Ident` | `#[widget(via = from_str)]` | `syn::parse::Parse` |
+| `Vec<T>` | `#[widget(derive(Debug, Clone))]` | Comma-separated list |
 | `Option<T>` / `T` | `#[widget(key = value)]` | Fallback: `syn::parse::Parse` |
 
 ### Required vs optional

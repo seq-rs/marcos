@@ -13,7 +13,9 @@ pub(crate) enum AttrMode {
 pub(crate) struct MetaFieldDef {
     pub ident: Ident,
     pub optional: bool,
-    /// The inner type (unwrapped from Option if optional).
+    /// Whether the field is `Vec<T>`. When true, `inner_ty` is the Vec's element type.
+    pub is_vec: bool,
+    /// The inner type (unwrapped from Option or Vec).
     pub inner_ty: Type,
     /// Meta key path, e.g. `rename` or `nested, parsing` for `#[meta(nested(parsing))]`.
     pub meta_keys: Vec<Ident>,
@@ -93,7 +95,8 @@ fn parse_mode(input: &DeriveInput) -> syn::Result<AttrMode> {
 fn parse_meta_field(field: &syn::Field) -> syn::Result<MetaFieldDef> {
     let ident = field.ident.clone().unwrap();
     let ty = field.ty.clone();
-    let (optional, inner_ty) = unwrap_option(&ty);
+    let (optional, peeled) = unwrap_option(&ty);
+    let (is_vec, inner_ty) = unwrap_vec(&peeled);
 
     let mut meta_keys: Option<Vec<Ident>> = None;
     let mut custom_parser: Option<syn::Path> = None;
@@ -120,7 +123,7 @@ fn parse_meta_field(field: &syn::Field) -> syn::Result<MetaFieldDef> {
     // default: field name is the meta key
     let meta_keys = meta_keys.unwrap_or_else(|| vec![ident.clone()]);
 
-    Ok(MetaFieldDef { ident, optional, inner_ty, meta_keys, custom_parser })
+    Ok(MetaFieldDef { ident, optional, is_vec, inner_ty, meta_keys, custom_parser })
 }
 
 fn parse_nested_meta_keys(attr: &syn::Attribute, keys: &mut Vec<Ident>) -> syn::Result<()> {
@@ -158,11 +161,20 @@ fn parse_intersection_field(field: &syn::Field) -> syn::Result<IntersectionField
 }
 
 /// If the type is `Option<T>`, returns `(true, T)`. Otherwise `(false, original)`.
-#[allow(clippy::collapsible_if)]
 fn unwrap_option(ty: &Type) -> (bool, Type) {
+    unwrap_generic(ty, "Option")
+}
+
+/// If the type is `Vec<T>`, returns `(true, T)`. Otherwise `(false, original)`.
+fn unwrap_vec(ty: &Type) -> (bool, Type) {
+    unwrap_generic(ty, "Vec")
+}
+
+#[allow(clippy::collapsible_if)]
+fn unwrap_generic(ty: &Type, name: &str) -> (bool, Type) {
     if let Type::Path(type_path) = ty {
         if let Some(segment) = type_path.path.segments.last() {
-            if segment.ident == "Option" {
+            if segment.ident == name {
                 if let PathArguments::AngleBracketed(args) = &segment.arguments {
                     if let Some(GenericArgument::Type(inner)) = args.args.first() {
                         return (true, inner.clone());

@@ -38,7 +38,7 @@ checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
 name = "marcos"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "marcos_core",
  "marcos_derive",
@@ -48,7 +48,7 @@ dependencies = [
 
 [[package]]
 name = "marcos_core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -57,7 +57,7 @@ dependencies = [
 
 [[package]]
 name = "marcos_derive"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "proc-macro2",
  "quote",
