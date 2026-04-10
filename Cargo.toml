@@ -7,7 +7,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 rust-version = "1.94.0"
 description = "Derive macro for parsing derive macro attributes flexibly and easily"
@@ -17,5 +17,5 @@ keywords = ["attribute", "derive", "macros"]
 categories = ["development-tools::procedural-macro-helpers"]
 
 [workspace.dependencies]
-marcos_core = { path = "core", version = "=0.1.1" }
-marcos_derive = { path = "derive", version = "=0.1.1" }
+marcos_core = { path = "core", version = "=0.1.2" }
+marcos_derive = { path = "derive", version = "=0.1.2" }
