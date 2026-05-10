@@ -1,7 +1,11 @@
 #[doc(hidden)]
 pub use marcos_core;
 
-pub use marcos_core::ErrCtx;
+/// Convenience attribute-value types: [`StrOrIdent`][convenience::StrOrIdent],
+/// [`Callable`][convenience::Callable], [`PathOrLit`][convenience::PathOrLit],
+/// [`Spanned`][convenience::Spanned], [`WordOr`][convenience::WordOr],
+/// [`WordOrList`][convenience::WordOrList], [`Override`][convenience::Override].
+pub use marcos_core::convenience;
 
 /// Re-export the `ParseAttributes` trait from `marcos_core`.
 ///
