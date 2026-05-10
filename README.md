@@ -2,7 +2,7 @@
 
 Declarative attribute parsing for derive macro attributes.
 
-Built on [syn](https://github.com/dtolnay/syn) — no hidden parsing magic, just
+Built on [syn](https://github.com/dtolnay/syn), contains no hidden parsing magic, just
 straightforward code generation from your struct definition.
 
 ## Attribute Parsing
@@ -60,8 +60,8 @@ The field type determines how values are extracted:
 
 ### Required vs optional
 
-`Option<T>` fields are optional — `None` when absent. Non-`Option` fields are
-required and produce a compile error if missing. Bare `bool` is an exception —
+`Option<T>` fields are optional, `None` when absent. Non-`Option` fields are
+required and produce a compile error if missing. Bare `bool` is an exception, as
 it defaults to `false` when the flag is absent.
 
 ```rust
@@ -125,7 +125,7 @@ struct Attrs {
 `marcos::convenience` ships value types covering common attribute shapes that
 are awkward to express with primitives. Two groups by where they fit:
 
-**Drop-in field types** — implement `syn::parse::Parse`, use directly:
+**Drop-in field types** all implement `syn::parse::Parse`, use directly:
 
 | Type | Accepts | Use when |
 |---|---|---|
@@ -147,7 +147,7 @@ struct WidgetAttrs {
 }
 ```
 
-**Word-or-value patterns** — distinguish bare `key` from `key = value` /
+**Word-or-value patterns**: distinguish bare `key` from `key = value` /
 `key(...)`. Used through a one-line custom parser via `#[parse(with = ...)]`:
 
 | Type | Bare form | Value form | Helper |
@@ -219,7 +219,7 @@ The generated `parse_attributes` returns `syn::Result<Self>` and will error on:
 
 | Crate | Purpose |
 |---|---|
-| `marcos` | Facade — re-exports everything |
+| `marcos` | Facade re-exports |
 | `marcos_core` | `ParseAttributes` trait + `ErrCtx` error collector |
 | `marcos_derive` | `#[derive(ParseAttributes)]` proc macro |
 
