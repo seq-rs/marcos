@@ -50,7 +50,13 @@ The field type determines how values are extracted:
 | Integer types (`u32`, `i64`, etc.) | `#[widget(count = 42)]` | Integer literal |
 | `Ident` | `#[widget(via = from_str)]` | `syn::parse::Parse` |
 | `Vec<T>` | `#[widget(derive(Debug, Clone))]` | Comma-separated list |
+| [`StrOrIdent`][cnv] | `#[widget(name = "Foo")]` *or* `#[widget(name = Foo)]` | Either form, see [Convenience types](#convenience-types) |
+| [`Callable`][cnv] | `#[widget(check = path::fn)]` *or* `#[widget(check = \|x\| x > 0)]` | Path or closure |
+| [`PathOrLit`][cnv] | `#[widget(default = 42)]` *or* `#[widget(default = MY_CONST)]` | Literal or path |
+| [`Spanned<T>`][cnv] | any `T` | Wraps `T` and remembers source span for diagnostics |
 | `Option<T>` / `T` | `#[widget(key = value)]` | Fallback: `syn::parse::Parse` |
+
+[cnv]: #convenience-types
 
 ### Required vs optional
 
@@ -113,6 +119,62 @@ struct Attrs {
     mode: Option<u32>,       // parses #[thing(mode = 42)]
 }
 ```
+
+### Convenience types
+
+`marcos::convenience` ships value types covering common attribute shapes that
+are awkward to express with primitives. Two groups by where they fit:
+
+**Drop-in field types** — implement `syn::parse::Parse`, use directly:
+
+| Type | Accepts | Use when |
+|---|---|---|
+| `StrOrIdent` | `key = "literal"` or `key = literal` | You don't want to force users to quote a name. |
+| `Callable` | `key = path::to::fn` or `key = \|x\| ...` | Validators, transformers, anything callable. |
+| `PathOrLit` | `key = 42` / `"x"` / `true` or `key = MY_CONST` | Defaults that may be a literal or a named constant. |
+| `Spanned<T>` | any `T: Parse` | You'll emit a diagnostic later spanned at this value. |
+
+```rust
+use marcos::ParseAttributes;
+use marcos::convenience::{StrOrIdent, Callable, Spanned};
+
+#[derive(ParseAttributes)]
+#[attr_path(widget)]
+struct WidgetAttrs {
+    builder: Option<StrOrIdent>,         // #[widget(builder = "Foo")] or builder = Foo
+    validator: Option<Callable>,         // path or closure
+    name: Option<Spanned<String>>,       // keeps the LitStr span for later errors
+}
+```
+
+**Word-or-value patterns** — distinguish bare `key` from `key = value` /
+`key(...)`. Used through a one-line custom parser via `#[parse(with = ...)]`:
+
+| Type | Bare form | Value form | Helper |
+|---|---|---|---|
+| `WordOr<T>` | `#[ser(default)]` | `#[ser(default = "fn")]` | `parse_word_or` |
+| `WordOrList<T>` | `#[ser(strict)]` | `#[ser(strict(a, b, c))]` | `parse_word_or_list` |
+| `Override<T>` | `#[ser(default)]` | `#[ser(default = expr)]` | `parse_override` |
+
+```rust
+use marcos::convenience::{Override, parse_override};
+use syn::Expr;
+
+fn parse_default(meta: &syn::meta::ParseNestedMeta) -> syn::Result<Override<Expr>> {
+    parse_override(meta)
+}
+
+#[derive(ParseAttributes)]
+#[attr_path(ser)]
+struct Attrs {
+    #[parse(with = parse_default)]
+    default: Option<Override<Expr>>,
+}
+```
+
+`Override<T>::Inherit` carries the "use the default" semantic at the API
+surface; codegen decides what "default" means (call `T::default()`, look up
+a registered fallback, etc.).
 
 ### Intersection mode
 
