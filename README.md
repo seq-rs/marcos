@@ -1,6 +1,6 @@
 # marcos
 
-Derive macro for parsing proc-macro attributes into typed structs.
+Declarative attribute parsing for derive macro attributes.
 
 Built on [syn](https://github.com/dtolnay/syn) — no hidden parsing magic, just
 straightforward code generation from your struct definition.
@@ -225,4 +225,16 @@ The generated `parse_attributes` returns `syn::Result<Self>` and will error on:
 
 ## License
 
-MIT
+MIT or Apache-2.0
+
+## AI Attribution
+
+AI was used while working on this project to help with bugs, edge cases, and
+most of all, to write extensive documentation.
+
+## Inspiration, dependencies
+
+- this library heavily depends on the amazing work done on the `syn` library,
+  the cornerstone of proc-macros
+- some of the convenience types were inspired by the utility types shown in
+  examples of the `darling` library

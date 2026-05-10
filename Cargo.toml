@@ -8,7 +8,7 @@ edition = "2024"
 rust-version = "1.94.0"
 description = "Derive macro for parsing derive macro attributes flexibly and easily"
 repository = "https://github.com/seq-rs/marcos"
-license = "MIT"
+license = "MIT OR Apache-2.0"
 keywords = ["attribute", "derive", "macros"]
 categories = ["development-tools::procedural-macro-helpers"]
 
