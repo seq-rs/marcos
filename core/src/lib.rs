@@ -1,6 +1,4 @@
-mod errctx;
-
-pub use errctx::ErrCtx;
+pub mod convenience;
 
 /// Trait for converting `&[syn::Attribute]` into typed structs.
 ///
