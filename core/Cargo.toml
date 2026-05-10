@@ -1,15 +1,15 @@
 [package]
 name = "marcos_core"
-license.workspace = true
-repository.workspace = true
-categories.workspace = true
-description.workspace = true
 version.workspace = true
-keywords.workspace = true
-rust-version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
+description.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
-syn = { version = "2", features = ["full"] }
 proc-macro2 = "1"
-quote = "1"
+quote.workspace = true
+syn = { workspace = true, features = ["full"] }
