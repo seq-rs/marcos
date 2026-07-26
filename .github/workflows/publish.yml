@@ -19,7 +19,7 @@ jobs:
       - uses: rust-lang/crates-io-auth-action@v1
         id: auth
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: seq-rs/actions/rust-cache@v1
 
       - run: cargo test --workspace
 
