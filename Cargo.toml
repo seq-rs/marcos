@@ -3,7 +3,7 @@ resolver = "3"
 members = ["core", "derive", "marcos"]
 
 [workspace.package]
-version = "0.1.3"
+version = "0.1.4"
 edition = "2024"
 rust-version = "1.94.0"
 description = "Derive macro for parsing derive macro attributes flexibly and easily"
@@ -15,5 +15,5 @@ categories = ["development-tools::procedural-macro-helpers"]
 [workspace.dependencies]
 marcos_core = { path = "core", version = "=0.1.3" }
 marcos_derive = { path = "derive", version = "=0.1.3" }
-syn = { version = "2", features = ["full", "extra-traits"] }
+syn = { version = "3", features = ["full", "extra-traits"] }
 quote = "1"

@@ -15,4 +15,4 @@ marcos_derive.workspace = true
 
 [dev-dependencies]
 trybuild = "1"
-syn = { version = "2", features = ["full"] }
+syn = { version = "3", features = ["full"] }
